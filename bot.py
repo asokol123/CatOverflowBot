@@ -6,7 +6,7 @@ import logging
 import random
 import requests
 
-max_offset = {'cat': 369, 'dog': 106}
+urls = {}
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                      level=logging.INFO)
@@ -34,23 +34,15 @@ def get_from_url(url):
         logger.warn('Got error: {}'.format(e))
 
 def cat_handler(update: Update, context: CallbackContext):
-    offset = random.randint(0, max_offset['cat'])
-    url = get_from_url('https://catoverflow.com/api/query/?offset={}&limit={}'.format(offset, 1))
-    if url is None:
-        message = "Failed to get cat. Sorry"
-    else:
-        message = url
-    context.bot.send_message(update.effective_chat.id, message)
+    if 'cat' not in urls or not urls['cat']:
+        urls['cat'] = get_from_url('https://catoverflow.com/api/query/').rstrip().split('\n')
+    context.bot.send_message(update.effective_chat.id, random.choice(urls['cat']))
 dispatcher.add_handler(CommandHandler('cat', cat_handler))
 
 def dog_handler(update: Update, context: CallbackContext):
-    offset = random.randint(0, max_offset['dog'])
-    url = get_from_url('https://dogoverflow.com/api/query/?offset={}&limit={}'.format(offset, 1))
-    if url is None:
-        message = "Failed to get dog. Sorry"
-    else:
-        message = url
-    context.bot.send_message(update.effective_chat.id, message)
+    if 'dog' not in urls or not urls['dog']:
+        urls['dog'] = get_from_url('https://dogoverflow.com/api/query/').rstrip().split('\n')
+    context.bot.send_message(update.effective_chat.id, random.choice(urls['dog']))
 dispatcher.add_handler(CommandHandler('dog', dog_handler))
 
 
