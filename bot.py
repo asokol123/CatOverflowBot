@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-from secrets import TOKEN
+import logging
+from handlers import overflow
+from handlers import pexels
+from secret import TOKEN
 from telegram.ext import Updater, CommandHandler, CallbackContext
 from telegram import Update
-import logging
-import random
-import requests
-
-urls = {}
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                      level=logging.INFO)
@@ -20,30 +18,22 @@ def help_handler(update: Update, context: CallbackContext):
 /help - Показать это сообщение
 /cat - Хочу котика!
 /dog - Хочу песика!
+/search cat dog - Хочу сначала картинок "cat", потом "dog"
+/cat_gif - Хочу гифку с котиком!
+/dog_gif - Хочу гифку с песиком!
     """
     context.bot.send_message(update.effective_chat.id, help_message)
+
 dispatcher.add_handler(CommandHandler('start', help_handler))
 dispatcher.add_handler(CommandHandler('help', help_handler))
 
-def get_from_url(url):
-    try:
-        return requests.get(url, verify=False).text
-    except (KeyboardInterrupt, SystemExit):
-        raise
-    except Exception as e:
-        logger.warn('Got error: {}'.format(e))
 
-def cat_handler(update: Update, context: CallbackContext):
-    if 'cat' not in urls or not urls['cat']:
-        urls['cat'] = get_from_url('https://catoverflow.com/api/query/').rstrip().split('\n')
-    context.bot.send_message(update.effective_chat.id, random.choice(urls['cat']))
-dispatcher.add_handler(CommandHandler('cat', cat_handler))
+dispatcher.add_handler(CommandHandler('cat_gif', overflow.cat_overflow_handler))
+dispatcher.add_handler(CommandHandler('dog_gif', overflow.dog_overflow_handler))
 
-def dog_handler(update: Update, context: CallbackContext):
-    if 'dog' not in urls or not urls['dog']:
-        urls['dog'] = get_from_url('https://dogoverflow.com/api/query/').rstrip().split('\n')
-    context.bot.send_message(update.effective_chat.id, random.choice(urls['dog']))
-dispatcher.add_handler(CommandHandler('dog', dog_handler))
+dispatcher.add_handler(CommandHandler('cat', pexels.cute_cat_handler))
+dispatcher.add_handler(CommandHandler('dog', pexels.cute_dog_handler))
+dispatcher.add_handler(CommandHandler('search', pexels.search_handler))
 
 
 updater.start_polling()
