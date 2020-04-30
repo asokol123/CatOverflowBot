@@ -1,6 +1,7 @@
 import logging
 import random
 import requests
+from handlers import stats
 from secret import PEXELS_KEY
 from telegram import Update
 from telegram.ext import CallbackContext
@@ -29,25 +30,33 @@ def get_random_search(query):
             'per_page': 1,
             'page': ind,
         })
-    while len(result['photos']) == 0:
+    while len(result['photos']) == 0 and result['total_results'] > 0:
         ind = random.randint(1, result['total_results'])
         result = get_pexels(search, {
                 'query': query,
                 'per_page': 1,
                 'page': ind,
             })
-    logger.debug(result)
-    return result['photos'][0]
+    if len(result['photos']) > 0:
+        return result['photos'][0]
 
+
+@stats.handler
 def cute_cat_handler(update: Update, context: CallbackContext):
     context.bot.send_photo(update.effective_chat.id, photo=get_random_search('cat')['src']['medium'])
 
+@stats.handler
 def cute_dog_handler(update: Update, context: CallbackContext):
     context.bot.send_photo(update.effective_chat.id, photo=get_random_search('dog')['src']['medium'])
 
+@stats.handler
 def search_handler(update: Update, context: CallbackContext):
-    if len(context.args) == 0:
+    q = ' '.join(context.args)
+    if not q:
         context.bot.send_message(update.effective_chat.id, "Мне нечего искать!")
         return
-    for item in context.args:
-        context.bot.send_photo(update.effective_chat.id, photo=get_random_search(item)['src']['medium'])
+    search_result = get_random_search(q)
+    if search_result is None:
+        context.bot.send_message(update.effective_chat.id, "Ничего не нашлось")
+        return
+    context.bot.send_photo(update.effective_chat.id, photo=search_result['src']['medium'])

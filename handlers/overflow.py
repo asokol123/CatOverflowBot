@@ -1,6 +1,7 @@
 import logging
 import random
 import requests
+from handlers import stats
 from telegram import Update
 from telegram.ext import CallbackContext
 
@@ -16,11 +17,13 @@ def get_from_url(url):
     except Exception as e:
         logger.warn('Got error: {}'.format(e))
 
+@stats.handler
 def cat_overflow_handler(update: Update, context: CallbackContext):
     if 'cat' not in urls or not urls['cat']:
         urls['cat'] = get_from_url('https://catoverflow.com/api/query/').rstrip().split('\n')
     context.bot.send_message(update.effective_chat.id, random.choice(urls['cat']))
 
+@stats.handler
 def dog_overflow_handler(update: Update, context: CallbackContext):
     if 'dog' not in urls or not urls['dog']:
         urls['dog'] = get_from_url('https://dogoverflow.com/api/query/').rstrip().split('\n')

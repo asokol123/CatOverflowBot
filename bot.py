@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import logging
-from handlers import overflow
-from handlers import pexels
+from handlers import overflow, pexels
 from secret import TOKEN
 from telegram.ext import Updater, CommandHandler, CallbackContext
 from telegram import Update
