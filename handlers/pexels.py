@@ -32,7 +32,7 @@ def get_random_search(query):
         })
     while len(result['photos']) == 0 and result['total_results'] > 0:
         ind = random.randint(1, result['total_results'])
-        result = get_pexels(search, {
+        result = get_pexels('search', {
                 'query': query,
                 'per_page': 1,
                 'page': ind,
