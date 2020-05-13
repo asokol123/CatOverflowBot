@@ -1,6 +1,7 @@
 import logging
 import random
 import requests
+import telegram
 from handlers import stats
 from secret import PEXELS_KEY
 from telegram import Update
@@ -41,13 +42,23 @@ def get_random_search(query):
         return result['photos'][0]
 
 
+def get_caption(res):
+    return "[Photo]({}) by [{}]({})".format(res['url'], res['photographer'], res['photographer_url'])
+
+
+def send_search_result(bot, chat_id, result):
+    bot.send_photo(chat_id, photo=result['src']['medium'], caption=get_caption(result), parse_mode=telegram.ParseMode.MARKDOWN_V2)
+
+
 @stats.handler
 def cute_cat_handler(update: Update, context: CallbackContext):
-    context.bot.send_photo(update.effective_chat.id, photo=get_random_search('cat')['src']['medium'])
+    search_result =  get_random_search('cat')
+    send_search_result(context.bot, update.effective_chat.id, search_result)
 
 @stats.handler
 def cute_dog_handler(update: Update, context: CallbackContext):
-    context.bot.send_photo(update.effective_chat.id, photo=get_random_search('dog')['src']['medium'])
+    search_result = get_random_search('dog')
+    send_search_result(context.bot, update.effective_chat.id, search_result)
 
 @stats.handler
 def search_handler(update: Update, context: CallbackContext):
@@ -59,4 +70,4 @@ def search_handler(update: Update, context: CallbackContext):
     if search_result is None:
         context.bot.send_message(update.effective_chat.id, "Ничего не нашлось")
         return
-    context.bot.send_photo(update.effective_chat.id, photo=search_result['src']['medium'])
+    send_search_result(context.bot, update.effective_chat.id, search_result)
